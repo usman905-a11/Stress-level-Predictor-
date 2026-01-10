@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stress Level Predictor</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #0d1b2a, #1b3b6f);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1200px; /* slightly smaller width for compactness */
+      background: linear-gradient(135deg, #112d4e, #1e3c72);
+      margin: 30px auto;
+      padding: 25px 30px;
+      border-radius: 16px;
+      box-shadow: 0px 10px 28px rgba(0,0,0,0.35);
+      animation: fadeIn 1.2s ease-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .container:hover {
+      transform: translateY(-4px);
+      box-shadow: 0px 14px 32px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 18px;
+      font-size: 28px;
+      color: #e0f0ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      animation: slideDown 1s ease-out;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+      gap: 15px 18px; /* reduced spacing */
+      color: #f1f5ff;
+    }
+
+    form div {
+      background: rgba(255,255,255,0.05); /* small subtle box for each field */
+      padding: 8px 10px;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+    form div:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    label {
+      font-weight: bold;
+      color: #cfe2ff;
+      margin-bottom: 4px;
+      font-size: 13px;
+      display: block;
+      transition: color 0.3s;
+    }
+    label:hover {
+      color: #ffffff;
+    }
+
+    select {
+      width: 100%;
+      padding: 6px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: none;
+      background: #223a69;
+      color: #fff;
+      transition: 0.3s;
+    }
+    select:hover {
+      background: #2a4b8c;
+    }
+    select:focus {
+      outline: none;
+      background: #345ea1;
+      box-shadow: 0 0 5px rgba(255,255,255,0.3);
+    }
+
+    button {
+      grid-column: 1 / -1;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease-in-out;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #2a5298, #3c6edc);
+      transform: scale(1.04);
+    }
+
+    .result, .error {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      animation: fadeIn 1s ease-in;
+      font-size: 14px;
+    }
+
+    .result h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #cfe2ff;
+    }
+
+    .error {
+      background: rgba(255, 50, 50, 0.1);
+      border: 1px solid rgba(255, 50, 50, 0.4);
+      color: #ffaaaa;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+    li {
+      margin: 2px 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Stress Level Predictor</h1>
+    <form method="POST" action="/predict_form">
+      {% for feature in features %}
+        <div>
+          <label for="{{feature}}">{{feature.replace("_", " ").title()}}</label>
+          <select name="{{feature}}" id="{{feature}}" required>
+            {% if feature == "anxiety_level" %}
+              {% for i in range(0, 22) %}
+                <option value="{{i}}">{{i}}</option>
+              {% endfor %}
+            {% elif feature == "self_esteem" %}
+              {% for i in range(0, 31) %}
+                <option value="{{i}}">{{i}}</option>
+              {% endfor %}
+            {% elif feature == "mental_health_history" %}
+              <option value="0">0 (No)</option>
+              <option value="1">1 (Yes)</option>
+            {% elif feature == "depression" %}
+              {% for i in range(0, 31) %}
+                <option value="{{i}}">{{i}}</option>
+              {% endfor %}
+            {% elif feature == "headache" %}
+              {% for i in range(0, 6) %}
+                <option value="{{i}}">{{i}}</option>
+              {% endfor %}
+            {% elif feature == "blood_pressure" %}
+              {% for i in range(1, 4) %}
+                <option value="{{i}}">{{i}}</option>
+              {% endfor %}
+            {% else %}
+              {% for i in range(0, 6) %}
+                <option value="{{i}}">{{i}}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+      {% endfor %}
+      <button type="submit">Predict Stress Level</button>
+    </form>
+
+    {% if result %}
+    <div class="result">
+      <h2>Prediction Result</h2>
+      <p><strong>Predicted Stress Level:</strong> {{ result.predicted_class }}</p>
+      <p><strong>Probabilities:</strong></p>
+      <ul>
+        {% for k, v in result.probabilities.items() %}
+          <li>{{k}}: {{v}}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="error">
+      <p>Error: {{error}}</p>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
